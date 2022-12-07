@@ -1,0 +1,8 @@
+---
+- name: "Installation of Jenkins"
+  hosts: jenkins
+  gather_facts: true
+
+  tasks:
+  roles:
+    - jenkins

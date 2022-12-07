@@ -1,0 +1,2 @@
+[jenkins]
+jenkins.example.local  ansible_host=XXX.XXX.XXX.XXX  ansible_user=ansible

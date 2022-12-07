@@ -1,0 +1,10 @@
+.DS_Store
+files/*.pem
+files/*.crt
+files/*.cer
+files/*.key
+files/*.pfx
+files/*.p12
+files/*.jks
+*.log
+*.log.*
