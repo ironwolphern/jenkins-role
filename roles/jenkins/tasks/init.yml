@@ -1,0 +1,18 @@
+---
+- name: "Initialize playbook | {{ _title_pfx }}"
+  delegate_to: "{{ jenkins__delegate_to }}"
+  tags: [always, initialize]
+  block:
+
+  - name: "Display title | init | {{ _title_pfx }}"
+    ansible.builtin.debug:
+      msg:
+        - "######################################################################################"
+        - "##                                  JENKINS SERVER                                  ##"
+        - "######################################################################################"
+
+  - name: "Ensure tmp directory exists | init | {{ _title_pfx }}"
+    ansible.builtin.file:
+      path: "{{ jenkins__tmp_dir }}"
+      state: directory
+      mode: 0755

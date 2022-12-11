@@ -1,0 +1,1 @@
+*Include in this directory the jks bundle certificate for your Jenkins server.*

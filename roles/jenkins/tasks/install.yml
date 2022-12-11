@@ -1,0 +1,137 @@
+---
+- name: "Install Jenkins server | install | {{ _title_pfx }}"
+  delegate_to: "{{ jenkins__delegate_to }}"
+  become: true
+  tags: [install, update]
+  block:
+
+    - name: "Header | install | {{ _title_pfx }}"
+      ansible.builtin.debug:
+        msg: "-------------------------------------- INSTALL ---------------------------------------"
+
+    - name: "Config limits for user jenkins | install | {{ _title_pfx }}"
+      ansible.builtin.template:
+        src: jenkins.conf.j2
+        dest: /etc/security/limits.d/80-jenkins.conf
+        owner: root
+        group: root
+        mode: 0644
+
+    - name: "Install jenkins in Debian OS Family | install | {{ _title_pfx }}"
+      when: ansible_os_family == "Debian"
+      block:
+
+        - name: "Download key repo jenkins in Debian OS Family | install | {{ _title_pfx }}"
+          ansible.builtin.get_url:
+            url: https://pkg.jenkins.io/debian-stable/jenkins.io.key
+            dest: /usr/share/keyrings/jenkins-keyring.asc
+            mode: 0644
+            owner: root
+            group: root
+
+        - name: "Add repo jenkins in Debian OS Family | install | {{ _title_pfx }}"
+          ansible.builtin.lineinfile:
+            path: /etc/apt/sources.list.d/jenkins.list
+            line: "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/"
+            create: true
+            owner: root
+            group: root
+            mode: 0644
+
+        - name: "Install jenkins in Debian OS Family | install | {{ _title_pfx }}"
+          ansible.builtin.apt:
+            name: "{{ item }}"
+            state: present
+            update_cache: true
+            cache_valid_time: 3600
+          loop:
+            - openjdk-11-jre
+            - jenkins
+
+        - name: "Stop and enable jenkins in Debian OS Family | install | {{ _title_pfx }}"
+          ansible.builtin.systemd:
+            name: jenkins
+            state: stopped
+            enabled: true
+
+    - name: "Install jenkins in RedHat OS Family | install | {{ _title_pfx }}"
+      when: ansible_os_family == "RedHat"
+      block:
+
+        - name: "Add repo jenkins in RedHat OS Family | install | {{ _title_pfx }}"
+          ansible.builtin.yum_repository:
+            name: jenkins
+            description: Jenkins repository
+            baseurl: https://pkg.jenkins.io/redhat-stable
+            file: jenkins
+            gpgcheck: true
+            gpgkey: https://pkg.jenkins.io/redhat-stable/jenkins.io.key
+            enabled: true
+
+        - name: "Install jenkins in RedHat OS Family | install | {{ _title_pfx }}"
+          ansible.builtin.yum:
+            name: "{{ item }}"
+            state: present
+            update_cache: true
+          loop:
+            - java-11-openjdk
+            - jenkins
+
+        - name: "Stop and enable jenkins in RedHat OS Family | install | {{ _title_pfx }}"
+          ansible.builtin.systemd:
+            name: jenkins
+            state: stopped
+            enabled: true
+
+    - name: "Create jenkins service directory | install | {{ _title_pfx }}"
+      ansible.builtin.file:
+        path: /etc/systemd/system/jenkins.service.d
+        state: directory
+        owner: root
+        group: root
+        mode: 0755
+
+    - name: "Create jenkins cache tmp and heapdump directory | install | {{ _title_pfx }}"
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: jenkins
+        group: jenkins
+        mode: 0755
+      loop:
+        - "{{ jenkins__cache_dir }}/tmp"
+        - "{{ jenkins__cache_dir }}/heapdump"
+
+    - name: "Create jenkins keystore directory | install | {{ _title_pfx }}"
+      ansible.builtin.file:
+        path: "{{ jenkins__home_dir }}/keystore"
+        state: directory
+        owner: jenkins
+        group: jenkins
+        mode: 0700
+
+    - name: "Copy jenkins keystore certificate | install | {{ _title_pfx }}"
+      ansible.builtin.copy:
+        src: jenkins.jks
+        dest: "{{ jenkins__home_dir }}/keystore/jenkins.jks"
+        owner: jenkins
+        group: jenkins
+        mode: 0640
+
+    - name: "Customize jenkins service | install | {{ _title_pfx }}"
+      ansible.builtin.template:
+        src: override.conf.j2
+        dest: /etc/systemd/system/jenkins.service.d/override.conf
+        owner: root
+        group: root
+        mode: 0644
+
+    - name: "Reload Systemd | handlers | {{ _title_pfx }}"
+      ansible.builtin.systemd:
+        daemon_reload: true
+
+    - name: "Start and enable jenkins | install | {{ _title_pfx }}"
+      ansible.builtin.systemd:
+        name: jenkins
+        state: started
+        enabled: true

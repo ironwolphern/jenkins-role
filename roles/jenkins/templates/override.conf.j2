@@ -1,0 +1,8 @@
+[Service]
+Environment="JENKINS_PORT={{ jenkins__java_http_port }}"
+Environment="JENKINS_HTTPS_PORT={{ jenkins__java_https_port }}"
+Environment="JENKINS_HTTPS_KEYSTORE={{ jenkins__java_ssl_keystore }}"
+Environment="JENKINS_HTTPS_KEYSTORE_PASSWORD={{ jenkins__java_ssl_password }}"
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+Environment="JAVA_OPTS={{ jenkins__java_opts }}"
+Environment="JENKINS_OPTS={{ jenkins__jenkins_opts }}"
