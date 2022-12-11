@@ -1,10 +1,10 @@
 .DS_Store
-files/*.pem
-files/*.crt
-files/*.cer
-files/*.key
-files/*.pfx
-files/*.p12
-files/*.jks
+roles/jenkins/files/*.pem
+roles/jenkins/files/*.crt
+roles/jenkins/files/*.cer
+roles/jenkins/files/*.key
+roles/jenkins/files/*.pfx
+roles/jenkins/files/*.p12
+roles/jenkins/files/*.jks
 *.log
 *.log.*
