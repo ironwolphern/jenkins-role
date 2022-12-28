@@ -1,24 +1,41 @@
 ---
 - name: "Playbook for deploy Jenkins | {{ _title_pfx }}"
-  delegate_to: "{{ jenkins__delegate_to }}"
   block:
 
     - name: "Initialize playbook | {{ _title_pfx }}"
       ansible.builtin.import_tasks:
         file: init.yml
+      vars:
+        jenkins__delegate_to: all
       tags: [always, initialize]
+
+    - name: "Install Jenkins agent | {{ _title_pfx }}"
+      ansible.builtin.import_tasks:
+        file: install_agent.yml
+      vars:
+        jenkins__agent__delegate_to: agents
+      tags: [install_agent]
 
     - name: "Install Jenkins server | {{ _title_pfx }}"
       ansible.builtin.import_tasks:
-        file: install.yml
-      tags: [install]
+        file: install_jenkins.yml
+      vars:
+        jenkins__server__delegate_to: jenkins
+      tags: [install_jenkins]
 
     - name: "Remove Jenkins server | {{ _title_pfx }}"
       ansible.builtin.import_tasks:
-        file: remove.yml
-      tags: [never, remove]
+        file: remove_jenkins.yml
+      tags: [never, remove_jenkins]
+
+    - name: "Remove Jenkins agent | {{ _title_pfx }}"
+      ansible.builtin.import_tasks:
+        file: remove_agent.yml
+      tags: [never, remove_agent]
 
     - name: "Finalize playbook | {{ _title_pfx }}"
       ansible.builtin.import_tasks:
         file: finish.yml
+      vars:
+        jenkins__delegate_to: all
       tags: [always, finalize]

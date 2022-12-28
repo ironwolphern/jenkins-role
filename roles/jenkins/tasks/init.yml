@@ -4,15 +4,33 @@
   tags: [always, initialize]
   block:
 
-  - name: "Display title | init | {{ _title_pfx }}"
+  - name: "Display title | Init | {{ _title_pfx }}"
     ansible.builtin.debug:
       msg:
         - "######################################################################################"
         - "##                                  JENKINS SERVER                                  ##"
         - "######################################################################################"
 
-  - name: "Ensure tmp directory exists | init | {{ _title_pfx }}"
+  - name: "Ensure tmp directory exists | Init | {{ _title_pfx }}"
     ansible.builtin.file:
       path: "{{ jenkins__tmp_dir }}"
       state: directory
       mode: 0755
+
+  - name: "Install JRE and git on Debian OS Family | Init | {{ _title_pfx }}"
+    ansible.builtin.apt:
+      name: "{{ item }}"
+      state: present
+    loop:
+      - git
+      - openjdk-11-jre
+    when: ansible_os_family == "Debian"
+
+  - name: "Install JRE and git on RedHat OS Family | Init | {{ _title_pfx }}"
+    ansible.builtin.apt:
+      name: "{{ item }}"
+      state: present
+    loop:
+      - git
+      - java-11-openjdk
+    when: ansible_os_family == "RedHat"

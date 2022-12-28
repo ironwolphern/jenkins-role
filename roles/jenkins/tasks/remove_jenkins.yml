@@ -1,0 +1,58 @@
+---
+- name: "Remove Jenkins server | {{ _title_pfx }}"
+  delegate_to: "{{ jenkins__delegate_to }}"
+  become: true
+  tags: remove_jenkins
+  block:
+
+    - name: "Header | Remove_jenkins | {{ _title_pfx }}"
+      ansible.builtin.debug:
+        msg: "-------------------------------------- REMOVE ----------------------------------------"
+
+    - name: "Stop and disable jenkins service | Remove_jenkins | {{ _title_pfx }}"
+      ansible.builtin.systemd:
+        name: jenkins
+        state: stopped
+        enabled: false
+
+    - name: "Remove jenkins in Debian OS Family | Remove_jenkins | {{ _title_pfx }}"
+      ansible.builtin.apt:
+        name: "{{ item }}"
+        state: absent
+      loop:
+        - jenkins
+        - openjdk-11-jre
+      when: ansible_os_family == "Debian"
+
+    - name: "Remove jenkins in RedHat OS Family | Remove_jenkins | {{ _title_pfx }}"
+      ansible.builtin.yum:
+        name: "{{ item }}"
+        state: absent
+      loop:
+        - jenkins
+        - java-11-openjdk
+      when: ansible_os_family == "RedHat"
+
+    - name: "Remove user jenkins | Remove_jenkins | {{ _title_pfx }}"
+      ansible.builtin.user:
+        name: jenkins
+        state: absent
+
+    - name: "Remove group jenkins | Remove_jenkins | {{ _title_pfx }}"
+      ansible.builtin.group:
+        name: jenkins
+        state: absent
+
+    - name: "Remove jenkins files and service | Remove_jenkins | {{ _title_pfx }}"
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - "{{ jenkins__home_dir }}"
+        - /var/cache/jenkins
+        - /etc/init.d/jenkins
+        - /etc/default/jenkins
+        - /etc/logrotate.d/jenkins
+        - /etc/systemd/system/jenkins.service.d
+        - /etc/systemd/system/jenkins.service
+      notify: systemd_reload

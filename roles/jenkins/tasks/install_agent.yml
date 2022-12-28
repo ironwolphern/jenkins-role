@@ -1,0 +1,168 @@
+---
+- name: "Install Jenkins server | install_agent | {{ _title_pfx }}"
+  delegate_to: "{{ jenkins__delegate_to }}"
+  become: true
+  tags: install_agent
+  block:
+
+    - name: "Header | install_agent | {{ _title_pfx }}"
+      ansible.builtin.debug:
+        msg: "------------------------------- INSTALL JENKINS AGENT --------------------------------"
+
+    - name: "Install Docker in Debian OS Family | install_agent | {{ _title_pfx }}"
+      when: ansible_os_family == "Debian"
+      block:
+
+        - name: "Remove old Docker packages | install_agent | {{ _title_pfx }}"
+          ansible.builtin.apt:
+            name: "{{ item }}"
+            state: absent
+            purge: true
+          loop:
+            - docker
+            - docker-engine
+            - docker.io
+            - containerd
+            - runc
+
+        - name: "Install necesary Docker packages | install_agent | {{ _title_pfx }}"
+          ansible.builtin.apt:
+            name: "{{ item }}"
+            state: present
+            update_cache: true
+          loop:
+            - ca-certificates
+            - curl
+            - gnupg
+            - lsb-release
+
+        - name: "Add Docker GPG key | install_agent | {{ _title_pfx }}"
+          ansible.builtin.apt_key:
+            url: https://download.docker.com/linux/{{ ansible_distribution | lower }}/gpg
+            state: present
+
+        - name: "Add Docker repository | install_agent | {{ _title_pfx }}"
+          ansible.builtin.apt_repository:
+            repo: deb [arch=amd64] https://download.docker.com/linux/{{ ansible_distribution | lower }} {{ ansible_distribution_release }} stable
+            state: present
+
+        - name: "Install Docker packages | install_agent | {{ _title_pfx }}"
+          ansible.builtin.apt:
+            name: "{{ item }}"
+            state: present
+            update_cache: true
+          loop:
+            - docker-ce
+            - docker-ce-cli
+            - containerd.io
+            - docker-compose-plugin
+
+    - name: "Install Docker in RedHat OS Family | install_agent | {{ _title_pfx }}"
+      when: ansible_os_family == "RedHat"
+      block:
+
+        - name: "Install Docker in RedHat and Centos Distribution | install_agent | {{ _title_pfx }}"
+          when: ansible_distribution == "CentOS" or ansible_distribution == "RedHat"
+          block:
+
+            - name: "Remove old Docker packages | install_agent | {{ _title_pfx }}"
+              ansible.builtin.yum:
+                name: "{{ item }}"
+                state: absent
+              loop:
+                - docker
+                - docker-client
+                - docker-client-latest
+                - docker-common
+                - docker-latest
+                - docker-latest-logrotate
+                - docker-logrotate
+                - docker-engine
+                - podman
+                - runc
+
+            - name: "Install necesary Docker packages | install_agent | {{ _title_pfx }}"
+              ansible.builtin.yum:
+                name: "{{ item }}"
+                state: present
+              loop:
+                - yum-utils
+
+            - name: "Add Docker CentOS repository | install_agent | {{ _title_pfx }}"
+              ansible.builtin.get_url:
+                url: https://download.docker.com/linux/centos/docker-ce.repo
+                dest: /etc/yum.repos.d/docker-ce.repo
+                mode: 0644
+                owner: root
+                group: root
+              when: ansible_distribution == "CentOS"
+
+            - name: "Add Docker RedHat  repository | install_agent | {{ _title_pfx }}"
+              ansible.builtin.get_url:
+                url: https://download.docker.com/linux/rhel/docker-ce.repo
+                dest: /etc/yum.repos.d/docker-ce.repo
+                mode: 0644
+                owner: root
+                group: root
+              when: ansible_distribution == "RedHat"
+
+            - name: "Install Docker packages | install_agent | {{ _title_pfx }}"
+              ansible.builtin.yum:
+                name: "{{ item }}"
+                state: present
+              loop:
+                - docker-ce
+                - docker-ce-cli
+                - containerd.io
+                - docker-compose-plugin
+
+        - name: "Install Docker in Fedora Distribution | install_agent | {{ _title_pfx }}"
+          when: ansible_distribution == "Fedora"
+          block:
+
+            - name: "Remove old Docker packages | install_agent | {{ _title_pfx }}"
+              ansible.builtin.dnf:
+                name: "{{ item }}"
+                state: absent
+              loop:
+                - docker
+                - docker-client
+                - docker-client-latest
+                - docker-common
+                - docker-latest
+                - docker-latest-logrotate
+                - docker-logrotate
+                - docker-selinux
+                - docker-engine-selinux
+                - docker-engine
+
+            - name: "Install necesary Docker packages | install_agent | {{ _title_pfx }}"
+              ansible.builtin.dnf:
+                name: "{{ item }}"
+                state: present
+              loop:
+                - dnf-plugins-core
+
+            - name: "Add Docker Fedora repository | install_agent | {{ _title_pfx }}"
+              ansible.builtin.get_url:
+                url: https://download.docker.com/linux/fedora/docker-ce.repo
+                dest: /etc/yum.repos.d/docker-ce.repo
+                mode: 0644
+                owner: root
+                group: root
+
+            - name: "Install Docker packages | install_agent | {{ _title_pfx }}"
+              ansible.builtin.dnf:
+                name: "{{ item }}"
+                state: present
+              loop:
+                - docker-ce
+                - docker-ce-cli
+                - containerd.io
+                - docker-compose-plugin
+
+    - name: "Start and Enable Docker service | install_agent | {{ _title_pfx }}"
+      ansible.builtin.systemd:
+        name: docker
+        state: started
+        enabled: true

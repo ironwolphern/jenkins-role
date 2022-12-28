@@ -1,0 +1,22 @@
+---
+# Delegate installation server
+jenkins__delegate_to: jenkins
+
+# Configuration paths
+jenkins__tmp_dir: /tmp/jenkins_role
+jenkins__cache_dir: /var/cache/jenkins
+jenkins__home_dir: /var/lib/jenkins
+
+# Jenkins service options
+jenkins__java_timezone: '-Dorg.apache.commons.jelly.tags.fmt.timeZone=Europe/Madrid -Duser.timezone=Europe/Madrid'
+jenkins__java_memory: '-Xms256m -Xmx4096m'
+jenkins__java_http_port: -1
+jenkins__java_https_port: 443
+jenkins__java_ssl_keystore: '{{ jenkins__home_dir }}/keystore/jenkins.jks'
+jenkins__java_ssl_password: '7fcd69049d'
+jenkins__java_args: '-Djava.awt.headless=true -XX:+UseG1GC -Djava.net.preferIPv4Stack=true -Djenkins.install.runSetupWizard=true'
+jenkins__java_opts: '{{ jenkins__java_memory }} {{ jenkins__java_args }} -Djava.io.tmpdir={{ jenkins__cache_dir }}/tmp {{ jenkins__java_timezone }}'
+jenkins__jenkins_opts: '--useJmx'
+
+# Name in FQDN
+jenkins__server_fqdn: jenkins.example.local
